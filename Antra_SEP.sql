@@ -1,11 +1,11 @@
 USE [WideWorldImporters-Standard] -- I mannually inported the database, so the name of the database is slightly different
 --SQL related assignments will be on the Wide World Importers Database unless otherwise mentioned.
---1.	List of Persons°Ø full name, all their fax and phone numbers, as well as the phone number and fax of the company they are working for (if any). 
+--1.	List of Persons‚Äô full name, all their fax and phone numbers, as well as the phone number and fax of the company they are working for (if any). 
 SELECT FullName, p.FaxNumber,p.PhoneNumber, CustomerName AS CompanyName
 FROM Application.People p JOIN Sales.Customers c
 ON p.PersonID = c.PrimaryContactPersonID;
 
---2.	If the customer's primary contact person has the same phone number as the customer°Øs phone number, list the customer companies. 
+--2.	If the customer's primary contact person has the same phone number as the customer‚Äôs phone number, list the customer companies. 
 SELECT CustomerName AS CompanyName
 FROM Sales.Customers c JOIN Application.People p ON c.PrimaryContactPersonID = p.PersonID 
 WHERE c.PhoneNumber = p.PhoneNumber;
@@ -50,7 +50,7 @@ ON CT.StateProvinceID = SP.StateProvinceID
 WHERE SP.StateProvinceName IN ('Alabama' ,'Georgia')
 AND YEAR(O.OrderDate) = 2014)
 
---7.	List of States and Avg dates for processing (confirmed delivery date ®C order date).
+--7.	List of States and Avg dates for processing (confirmed delivery date ‚Äì order date).
 SELECT SP.StateProvinceName,AVG(DATEDIFF(day, O.OrderDate, CONVERT(DATE,I.ConfirmedDeliveryTime))) AS AverageProcessDates 
 FROM Sales.Invoices AS I
 JOIN Sales.Orders AS O
@@ -64,7 +64,7 @@ ON CT.StateProvinceID = SP.StateProvinceID
 GROUP BY SP.StateProvinceName
 ORDER BY SP.StateProvinceName
 
---8.	List of States and Avg dates for processing (confirmed delivery date ®C order date) by month.
+--8.	List of States and Avg dates for processing (confirmed delivery date ‚Äì order date) by month.
 SELECT MONTH(O.OrderDate) AS Month,SP.StateProvinceName,AVG(DATEDIFF(day, O.OrderDate, CONVERT(DATE,I.ConfirmedDeliveryTime))) AS AVGProcessDates
 FROM Sales.Invoices AS I
 JOIN Sales.Orders AS O ON I.OrderID = O.OrderID
@@ -92,7 +92,7 @@ GROUP BY SL.StockItemID
 ) AS SS ON PP.StockItemID = SS.StockItemID
 JOIN Warehouse.StockItems AS Stock ON PP.StockItemID = Stock.StockItemID
 
---10.	List of Customers and their phone number, together with the primary contact person°Øs name, to whom we did not sell more than 10  mugs (search by name) in the year 2016.
+--10.	List of Customers and their phone number, together with the primary contact person‚Äôs name, to whom we did not sell more than 10  mugs (search by name) in the year 2016.
 WITH temp AS(SELECT SO.CustomerID, SUM(SOL.Quantity) AS TotalQuantity FROM Sales.Orders SO JOIN Sales.OrderLines SOL ON 
 SO.OrderID = SOL.OrderID WHERE YEAR(SO.OrderDate)='2016'
 AND SOL.StockItemID IN (SELECT StockItemID FROM Warehouse.StockItems WHERE StockItemName LIKE '%mug%') GROUP BY SO.CustomerID
@@ -133,7 +133,7 @@ temp5.PhoneNumber,temp5.Quantity FROM temp5 LEFT JOIN Application.People AP ON t
 temp6.CityName, temp6.CountryID, temp6.CustomerName, temp6.PrimaryContactPersonName, AP.FullName AS AlternateContactPersonName,
 temp6.PhoneNumber,temp6.Quantity FROM temp6 LEFT JOIN Application.People AP ON temp6.AlternateContactPersonID = AP.PersonID;
 
---13.	List of stock item groups and total quantity purchased, total quantity sold, and the remaining stock quantity (quantity purchased ®C quantity sold)
+--13.	List of stock item groups and total quantity purchased, total quantity sold, and the remaining stock quantity (quantity purchased ‚Äì quantity sold)
 WITH cte0 AS (SELECT s.StockGroupID, SUM(p.OrderedOuters) AS PurchaseQuantity FROM Purchasing.PurchaseOrderLines p
 JOIN Warehouse.StockItemStockGroups s ON p.StockItemID = s.StockItemID
 GROUP BY s.StockGroupID
@@ -161,7 +161,7 @@ FROM cte0) a WHERE rnk = 1
 FROM cte1 c1 JOIN Warehouse.StockItems s ON c1.StockItemID = s.StockItemID
 RIGHT JOIN Application.Cities c ON c1.DeliveryCityID = c.CityID
 
---If the city did not purchase any stock items in 2016, print °∞No Sales°±.
+--If the city did not purchase any stock items in 2016, print ‚ÄúNo Sales‚Äù.
 --15.	List any orders that had more than one delivery attempt (located in invoice table).
 SELECT JSON_QUERY(SI.ReturnedDeliveryData,'$.Events[2]') AS MoreThanOneAttempt FROM Sales.Invoices SI
 WHERE JSON_QUERY(SI.ReturnedDeliveryData,'$.Events[2]') IS NOT NULL;
@@ -200,7 +200,7 @@ FROM cte2 PIVOT
 (MIN(Quantity) FOR Year IN ([2013], [2014], [2015], [2016], [2017])) TBL
 
 
---19.	Create a view that shows the total quantity of stock items of each stock group sold (in orders) by year 2013-2017. [Year, Stock Group Name1, Stock Group Name2, Stock Group Name3, °≠ , Stock Group Name10] 
+--19.	Create a view that shows the total quantity of stock items of each stock group sold (in orders) by year 2013-2017. [Year, Stock Group Name1, Stock Group Name2, Stock Group Name3, ‚Ä¶ , Stock Group Name10] 
 CREATE OR ALTER VIEW TotalQuantities2 AS
 WITH temp AS(SELECT SOL.StockItemID, SUM(SOL.Quantity) AS TotalQuanPerStockItem,YEAR(SO.OrderDate) 
 AS OrderYear FROM Sales.Orders SO 
@@ -422,14 +422,10 @@ FOR XML PATH('StockItems')
 
 Assignments 30 - 32 are group assignments.
 
-30.	Write a short essay talking about a scenario: Good news everyone! We (Wide World Importers) just brought out a small company called °∞Adventure works°±! Now that bike shop is our sub-company. The first thing of all works pending would be to merge the user logon information, person information (including emails, phone numbers) and products (of course, add category, colors) to WWI database. Include screenshot, mapping and query.
-31.	Database Design: OLTP db design request for EMS business: when people call 911 for medical emergency, 911 will dispatch UNITs to the given address. A UNIT means a crew on an apparatus (Fire Engine, Ambulance, Medic Ambulance, Helicopter, EMS supervisor). A crew member would have a medical level (EMR, EMT, A-EMT, Medic). All the treatments provided on scene are free. If the patient needs to be transported, that°Øs where the bill comes in. A bill consists of Units dispatched (Fire Engine and EMS Supervisor are free), crew members provided care (EMRs and EMTs are free), Transported miles from the scene to the hospital (Helicopters have a much higher rate, as you can image) and tax (Tax rate is 6%). Bill should be sent to the patient insurance company first. If there is a deductible, we send the unpaid bill to the patient only. Don°Øt forget about patient information, medical nature and bill paying status.
+30.	Write a short essay talking about a scenario: Good news everyone! We (Wide World Importers) just brought out a small company called ‚ÄúAdventure works‚Äù! Now that bike shop is our sub-company. The first thing of all works pending would be to merge the user logon information, person information (including emails, phone numbers) and products (of course, add category, colors) to WWI database. Include screenshot, mapping and query.
+31.	Database Design: OLTP db design request for EMS business: when people call 911 for medical emergency, 911 will dispatch UNITs to the given address. A UNIT means a crew on an apparatus (Fire Engine, Ambulance, Medic Ambulance, Helicopter, EMS supervisor). A crew member would have a medical level (EMR, EMT, A-EMT, Medic). All the treatments provided on scene are free. If the patient needs to be transported, that‚Äôs where the bill comes in. A bill consists of Units dispatched (Fire Engine and EMS Supervisor are free), crew members provided care (EMRs and EMTs are free), Transported miles from the scene to the hospital (Helicopters have a much higher rate, as you can image) and tax (Tax rate is 6%). Bill should be sent to the patient insurance company first. If there is a deductible, we send the unpaid bill to the patient only. Don‚Äôt forget about patient information, medical nature and bill paying status.
 
 32.	Remember the discussion about those two databases from the class, also remember, those data models are not perfect. You can always add new columns (but not alter or drop columns) to any tables. Suggesting adding Ingested DateTime and Surrogate Key columns. Study the Wide World Importers DW. Think the integration schema is the ODS. Come up with a TSQL Stored Procedure driven solution to move the data from WWI database to ODS, and then from the ODS to the fact tables and dimension tables. By the way, WWI DW is a galaxy schema db. Requirements:
 a.	Luckly, we only start with 1 fact: Purchase. Other facts can be ignored for now.
 b.	Add a new dimension: Country of Manufacture. It should be given on top of Stock Items.
 c.	Write script(s) and stored procedure(s) for the entire ETL from WWI db to DW.
-
-SELECT FullName, p.FaxNumber,p.PhoneNumber, CustomerName AS CompanyName
-FROM Application.People p JOIN Sales.Customers c
-ON p.PersonID = c.PrimaryContactPersonID 
